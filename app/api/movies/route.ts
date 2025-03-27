@@ -31,7 +31,7 @@ export async function GET(): Promise<NextResponse> {
     const movies = await db
       .collection("embedded_movies")
       .find({})
-      .limit(20)
+      .limit(50)
       .toArray();
 
     return NextResponse.json({ status: 200, data: movies });

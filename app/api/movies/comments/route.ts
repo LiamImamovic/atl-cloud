@@ -46,7 +46,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const comments = await db
       .collection("comments")
       .find(query)
-      .limit(20)
+      .limit(50)
       .toArray();
 
     return NextResponse.json({

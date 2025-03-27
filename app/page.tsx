@@ -75,6 +75,19 @@ export default async function Home() {
             </p>
           </a>
 
+          <Link
+            href="/login"
+            className="block p-6 border border-gray-200 rounded-xl hover:border-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors md:col-span-2"
+          >
+            <h2 className="text-2xl font-bold mb-2 text-blue-600">
+              Accès au Catalogue de Films
+            </h2>
+            <p className="text-gray-600">
+              Connectez-vous pour consulter notre collection complète de films
+              et d'informations détaillées.
+            </p>
+          </Link>
+
           <div className="block p-6 border border-gray-200 rounded-xl md:col-span-2">
             <h2 className="text-2xl font-bold mb-2">Endpoints API</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

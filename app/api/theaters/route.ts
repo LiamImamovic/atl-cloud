@@ -28,7 +28,7 @@ export async function GET(): Promise<NextResponse> {
     const theaters = await db
       .collection("theaters")
       .find({})
-      .limit(20)
+      .limit(50)
       .toArray();
 
     return NextResponse.json({

@@ -1,6 +1,8 @@
 import { checkApiAuth } from "@/lib/api-helpers";
 import { getAuthFromCookie } from "@/lib/auth";
+import { validate } from "@/lib/middleware/validate";
 import client from "@/lib/mongodb";
+import { commentSchema } from "@/lib/schemas/movie";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
@@ -111,47 +113,42 @@ export async function GET(request, context) {
  */
 export async function POST(request, context) {
   try {
-    // Vérification d'authentification
-    const { isAuthenticated, unauthorizedResponse } = await checkApiAuth();
+    // Vérifier l'authentification
+    const { isAuthenticated, user, unauthorizedResponse } =
+      await checkApiAuth();
     if (!isAuthenticated) {
-      return unauthorizedResponse!;
+      return unauthorizedResponse;
     }
 
-    const idComment = context.params.idComment;
-    if (!ObjectId.isValid(idComment)) {
+    const body = await request.json();
+
+    // Valider les données du commentaire
+    const validationResult = validate(commentSchema, body);
+    if (!validationResult.success) {
+      return (
+        validationResult as { success: false; error: NextResponse<unknown> }
+      ).error;
+    }
+
+    const commentData = validationResult.data;
+
+    // S'assurer que l'ID du commentaire est présent
+    if (!context.params.idComment) {
       return NextResponse.json({
         status: 400,
-        message: "Invalid comment ID",
-        error: "ID format is incorrect",
+        message: "Comment ID is required",
       });
     }
 
+    // Connexion à MongoDB
     const mongoClient = await client.connect();
     const db = mongoClient.db("sample_mflix");
 
-    const commentData = await request.json();
+    // Ajouter les informations de l'utilisateur
+    commentData.email = user.email;
+    commentData.name = user.name;
 
-    // Vérifier si le commentaire existe déjà
-    const existingComment = await db
-      .collection("comments")
-      .findOne({ _id: new ObjectId(idComment) });
-    if (existingComment) {
-      return NextResponse.json({
-        status: 409,
-        message: "Conflict",
-        error: "A comment with this ID already exists",
-      });
-    }
-
-    // Ajouter _id et date à l'objet commentData
-    commentData._id = new ObjectId(idComment);
-    commentData.date = new Date();
-
-    // Utiliser un ID utilisateur "en dur" comme demandé dans le cahier des charges
-    commentData.email = "user@example.com";
-    commentData.name = "Example User";
-
-    await db.collection("comments").insertOne(commentData);
+    await db.collection("comments").insertOne(commentData as any);
 
     return NextResponse.json({
       status: 201,

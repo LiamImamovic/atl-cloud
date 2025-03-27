@@ -1,8 +1,10 @@
-import { setAuthCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
-import bcrypt from "bcryptjs";
-import { Db } from "mongodb";
-import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
+import { loginSchema } from "@/lib/schemas/auth";
+import { compare } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * @swagger
@@ -36,75 +38,85 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Erreur serveur
  */
-export async function POST(request: Request): Promise<NextResponse> {
-  try {
-    const { email, password } = await request.json();
+export async function POST(request: Request) {
+  // Appliquer le rate limiting
+  const limiterResult = await rateLimit(request as unknown as NextRequest, {
+    limit: 5,
+    window: 60 * 15, // 15 minutes
+  });
 
-    // Validation basique
-    if (!email || !password) {
+  if (!limiterResult.success) {
+    return limiterResult.response;
+  }
+
+  try {
+    const body = await request.json();
+
+    // Validation avec Zod
+    const result = loginSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
         {
-          status: 400,
-          message: "Email and password are required",
+          message: "Données invalides",
+          errors: result.error.formErrors.fieldErrors,
         },
         { status: 400 },
       );
     }
 
-    const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
-    const usersCollection = db.collection("users");
+    const { email, password } = result.data;
 
-    // Rechercher l'utilisateur par email
-    const user = await usersCollection.findOne({ email });
+    // Connexion à MongoDB
+    const mongoClient = await client.connect();
+    const db = mongoClient.db("sample_mflix");
+    const user = await db.collection("users").findOne({ email });
+
     if (!user) {
       return NextResponse.json(
-        {
-          status: 401,
-          message: "Invalid email or password",
-        },
+        { message: "Email ou mot de passe incorrect" },
         { status: 401 },
       );
     }
 
     // Vérifier le mot de passe
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    const isValidPassword = await compare(password, user.password);
+    if (!isValidPassword) {
       return NextResponse.json(
-        {
-          status: 401,
-          message: "Invalid email or password",
-        },
+        { message: "Email ou mot de passe incorrect" },
         { status: 401 },
       );
     }
 
-    // Définir le cookie d'authentification
-    await setAuthCookie({
-      userId: user._id.toString(),
-      email: user.email,
-      name: user.name,
-      role: user.role || "user",
+    // Créer et stocker le token JWT
+    const token = sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "7d" },
+    );
+
+    // Stocker le token dans un cookie avec des paramètres de sécurité renforcés
+    const cookieStore = await cookies();
+    cookieStore.set({
+      name: "auth_token",
+      value: token,
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
     });
 
     return NextResponse.json({
-      status: 200,
-      message: "Login successful",
+      message: "Connexion réussie",
       user: {
         id: user._id,
-        email: user.email,
         name: user.name,
-        role: user.role || "user",
+        email: user.email,
       },
     });
   } catch (error: any) {
-    console.error("Login error:", error.message);
     return NextResponse.json(
-      {
-        status: 500,
-        message: "Internal Server Error",
-        error: error.message,
-      },
+      { message: "Erreur lors de la connexion", error: error.message },
       { status: 500 },
     );
   }

@@ -1,4 +1,4 @@
-import { removeAuthCookie } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 /**
@@ -12,11 +12,11 @@ import { NextResponse } from "next/server";
  *       200:
  *         description: Déconnexion réussie
  */
-export async function POST(): Promise<NextResponse> {
-  await removeAuthCookie();
+export async function POST() {
+  const cookieStore = await cookies();
+  cookieStore.delete("auth_token");
 
   return NextResponse.json({
-    status: 200,
-    message: "Logged out successfully",
+    message: "Déconnexion réussie",
   });
 }

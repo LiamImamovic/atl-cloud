@@ -1,7 +1,6 @@
-import { setAuthCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
-import bcrypt from "bcryptjs";
-import { Db } from "mongodb";
+import { registerSchema } from "@/lib/schemas/auth";
+import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 
 /**
@@ -40,90 +39,54 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Erreur serveur
  */
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(request: Request) {
   try {
-    const { email, password, name } = await request.json();
+    const body = await request.json();
 
-    // Validation basique
-    if (!email || !password || !name) {
+    const result = registerSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
         {
-          status: 400,
-          message: "Missing required fields",
+          message: `Données invalides`,
+          errors: result.error.formErrors.fieldErrors,
         },
         { status: 400 },
       );
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        {
-          status: 400,
-          message: "Password must be at least 6 characters long",
-        },
-        { status: 400 },
-      );
-    }
+    const { name, email, password } = result.data;
 
+    // Connexion à MongoDB
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
-    const usersCollection = db.collection("users");
+    const db = mongoClient.db("sample_mflix");
 
-    // Vérifier si l'email existe déjà
-    const existingUser = await usersCollection.findOne({ email });
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await db.collection("users").findOne({ email });
     if (existingUser) {
       return NextResponse.json(
-        {
-          status: 409,
-          message: "Email already in use",
-        },
-        { status: 409 },
+        { message: "Cet email est déjà utilisé" },
+        { status: 400 },
       );
     }
 
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hacher le mot de passe
+    const hashedPassword = await hash(password, 10);
 
-    // Créer le nouvel utilisateur
-    const newUser = {
+    // Insérer l'utilisateur dans la base de données
+    const resultInsert = await db.collection("users").insertOne({
+      name,
       email,
       password: hashedPassword,
-      name,
       createdAt: new Date(),
-      role: "user", // Rôle par défaut
-    };
-
-    const result = await usersCollection.insertOne(newUser);
-
-    // Définir le cookie d'authentification
-    await setAuthCookie({
-      userId: result.insertedId.toString(),
-      email,
-      name,
-      role: "user",
     });
 
-    return NextResponse.json(
-      {
-        status: 201,
-        message: "User registered successfully",
-        user: {
-          id: result.insertedId,
-          email,
-          name,
-          role: "user",
-        },
-      },
-      { status: 201 },
-    );
+    return NextResponse.json({
+      message: "Inscription réussie",
+      userId: resultInsert.insertedId,
+    });
   } catch (error: any) {
-    console.error("Registration error:", error.message);
     return NextResponse.json(
-      {
-        status: 500,
-        message: "Internal Server Error",
-        error: error.message,
-      },
+      { message: "Erreur lors de l'inscription", error: error.message },
       { status: 500 },
     );
   }
