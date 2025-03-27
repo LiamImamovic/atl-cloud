@@ -56,14 +56,6 @@ pnpm start
 pnpm build
 ```
 
-## 🔑 Variables d'environnement
-
-Créez un fichier `.env` à la racine du projet avec les variables suivantes:
-
-MONGODB_URI
-JWT_SECRET
-REDIS_URL
-
 ## 🌐 Structure de l'API
 
 L'API MFLIX est organisée selon les endpoints suivants:
