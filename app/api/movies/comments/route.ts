@@ -1,3 +1,4 @@
+import { checkApiAuth } from "@/lib/api-helpers";
 import client from "@/lib/mongodb";
 import { Db } from "mongodb";
 import { NextResponse } from "next/server";
@@ -6,7 +7,9 @@ import { NextResponse } from "next/server";
  * @swagger
  * /api/movies/comments:
  *   get:
- *     description: Récupère tous les commentaires liés aux films
+ *     description: Récupère tous les commentaires liés aux films (nécessite une authentification)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: movieId
@@ -16,11 +19,19 @@ import { NextResponse } from "next/server";
  *     responses:
  *       200:
  *         description: Commentaires récupérés avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       500:
  *         description: Erreur serveur
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const { isAuthenticated, unauthorizedResponse } = await checkApiAuth();
+    if (!isAuthenticated) {
+      return unauthorizedResponse!;
+    }
+
     const { searchParams } = new URL(request.url);
     const movieId = searchParams.get("movieId");
 

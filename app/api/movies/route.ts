@@ -1,3 +1,4 @@
+import { checkApiAuth } from "@/lib/api-helpers";
 import client from "@/lib/mongodb";
 import { Db } from "mongodb";
 import { NextResponse } from "next/server";
@@ -6,18 +7,32 @@ import { NextResponse } from "next/server";
  * @swagger
  * /api/movies:
  *   get:
- *     description: Récupère tous les films
+ *     description: Récupère tous les films (nécessite une authentification)
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Liste des films récupérée avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       500:
  *         description: Erreur serveur
  */
 export async function GET(): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const { isAuthenticated, unauthorizedResponse } = await checkApiAuth();
+    if (!isAuthenticated) {
+      return unauthorizedResponse!;
+    }
+
     const mongoClient = await client.connect();
     const db: Db = mongoClient.db("sample_mflix");
-    const movies = await db.collection("movies").find({}).limit(20).toArray();
+    const movies = await db
+      .collection("embedded_movies")
+      .find({})
+      .limit(20)
+      .toArray();
 
     return NextResponse.json({ status: 200, data: movies });
   } catch (error: any) {

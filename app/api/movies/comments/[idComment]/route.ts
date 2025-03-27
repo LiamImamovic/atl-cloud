@@ -1,3 +1,5 @@
+import { checkApiAuth } from "@/lib/api-helpers";
+import { getAuthFromCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
 import { Db, ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
@@ -19,6 +21,8 @@ import { NextResponse } from "next/server";
  *         description: Commentaire récupéré avec succès
  *       400:
  *         description: ID de commentaire invalide
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       404:
  *         description: Commentaire non trouvé
  *       500:
@@ -36,6 +40,18 @@ export async function GET(
         message: "Invalid comment ID",
         error: "ID format is incorrect",
       });
+    }
+
+    const auth = await getAuthFromCookie();
+    if (!auth) {
+      return NextResponse.json(
+        {
+          status: 401,
+          message: "Unauthorized",
+          error: "Authentication required to access this API",
+        },
+        { status: 401 },
+      );
     }
 
     const mongoClient = await client.connect();
@@ -70,7 +86,9 @@ export async function GET(
  * @swagger
  * /api/movies/comments/{idComment}:
  *   post:
- *     description: Ajoute un nouveau commentaire avec l'ID spécifié
+ *     description: Ajoute un nouveau commentaire avec l'ID spécifié (nécessite une authentification)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: idComment
@@ -87,6 +105,8 @@ export async function GET(
  *     responses:
  *       201:
  *         description: Commentaire créé avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       400:
  *         description: Données invalides
  *       500:
@@ -97,6 +117,12 @@ export async function POST(
   { params }: { params: { idComment: string } },
 ): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const { isAuthenticated, unauthorizedResponse } = await checkApiAuth();
+    if (!isAuthenticated) {
+      return unauthorizedResponse!;
+    }
+
     const { idComment } = params;
     if (!ObjectId.isValid(idComment)) {
       return NextResponse.json({
@@ -251,6 +277,19 @@ export async function DELETE(
   { params }: { params: { idComment: string } },
 ): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const auth = await getAuthFromCookie();
+    if (!auth) {
+      return NextResponse.json(
+        {
+          status: 401,
+          message: "Unauthorized",
+          error: "Authentication required to access this API",
+        },
+        { status: 401 },
+      );
+    }
+
     const { idComment } = params;
     if (!ObjectId.isValid(idComment)) {
       return NextResponse.json({

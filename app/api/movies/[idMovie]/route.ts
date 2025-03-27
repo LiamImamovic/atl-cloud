@@ -1,3 +1,4 @@
+import { getAuthFromCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
 import { Db, ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
@@ -6,7 +7,9 @@ import { NextResponse } from "next/server";
  * @swagger
  * /api/movies/{idMovie}:
  *   get:
- *     description: Récupère un film spécifique par son ID
+ *     description: Récupère un film spécifique par son ID (nécessite une authentification)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: idMovie
@@ -17,6 +20,8 @@ import { NextResponse } from "next/server";
  *     responses:
  *       200:
  *         description: Film récupéré avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       400:
  *         description: ID de film invalide
  *       404:
@@ -29,6 +34,19 @@ export async function GET(
   { params }: { params: { idMovie: string } },
 ): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const auth = await getAuthFromCookie();
+    if (!auth) {
+      return NextResponse.json(
+        {
+          status: 401,
+          message: "Unauthorized",
+          error: "Authentication required to access this API",
+        },
+        { status: 401 },
+      );
+    }
+
     const mongoClient = await client.connect();
     const db: Db = mongoClient.db("sample_mflix");
 
@@ -42,7 +60,7 @@ export async function GET(
     }
 
     const movie = await db
-      .collection("movies")
+      .collection("embedded_movies")
       .findOne({ _id: new ObjectId(idMovie) });
 
     if (!movie) {
@@ -110,7 +128,7 @@ export async function POST(
 
     // Vérifie si le film existe déjà
     const existingMovie = await db
-      .collection("movies")
+      .collection("embedded_movies")
       .findOne({ _id: new ObjectId(idMovie) });
     if (existingMovie) {
       return NextResponse.json({
@@ -123,7 +141,7 @@ export async function POST(
     // Ajouter _id à l'objet movieData
     movieData._id = new ObjectId(idMovie);
 
-    await db.collection("movies").insertOne(movieData);
+    await db.collection("embedded_movies").insertOne(movieData);
 
     return NextResponse.json({
       status: 201,
@@ -188,7 +206,7 @@ export async function PUT(
     delete movieData._id; // Supprimer _id s'il est présent pour éviter les erreurs
 
     const result = await db
-      .collection("movies")
+      .collection("embedded_movies")
       .updateOne({ _id: new ObjectId(idMovie) }, { $set: movieData });
 
     if (result.matchedCount === 0) {
@@ -228,6 +246,8 @@ export async function PUT(
  *     responses:
  *       200:
  *         description: Film supprimé avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       400:
  *         description: ID de film invalide
  *       404:
@@ -240,6 +260,19 @@ export async function DELETE(
   { params }: { params: { idMovie: string } },
 ): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const auth = await getAuthFromCookie();
+    if (!auth) {
+      return NextResponse.json(
+        {
+          status: 401,
+          message: "Unauthorized",
+          error: "Authentication required to access this API",
+        },
+        { status: 401 },
+      );
+    }
+
     const mongoClient = await client.connect();
     const db: Db = mongoClient.db("sample_mflix");
 
@@ -253,7 +286,7 @@ export async function DELETE(
     }
 
     const result = await db
-      .collection("movies")
+      .collection("embedded_movies")
       .deleteOne({ _id: new ObjectId(idMovie) });
 
     if (result.deletedCount === 0) {

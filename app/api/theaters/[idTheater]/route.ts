@@ -1,3 +1,4 @@
+import { getAuthFromCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
 import { Db, ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
@@ -6,7 +7,9 @@ import { NextResponse } from "next/server";
  * @swagger
  * /api/theaters/{idTheater}:
  *   get:
- *     description: Récupère un théâtre spécifique
+ *     description: Récupère un théâtre spécifique par son ID (nécessite une authentification)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: idTheater
@@ -17,6 +20,8 @@ import { NextResponse } from "next/server";
  *     responses:
  *       200:
  *         description: Théâtre récupéré avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       400:
  *         description: ID de théâtre invalide
  *       404:
@@ -29,6 +34,19 @@ export async function GET(
   { params }: { params: { idTheater: string } },
 ): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const auth = await getAuthFromCookie();
+    if (!auth) {
+      return NextResponse.json(
+        {
+          status: 401,
+          message: "Unauthorized",
+          error: "Authentication required to access this API",
+        },
+        { status: 401 },
+      );
+    }
+
     const { idTheater } = params;
     if (!ObjectId.isValid(idTheater)) {
       return NextResponse.json({
@@ -245,6 +263,19 @@ export async function DELETE(
   { params }: { params: { idTheater: string } },
 ): Promise<NextResponse> {
   try {
+    // Vérification d'authentification
+    const auth = await getAuthFromCookie();
+    if (!auth) {
+      return NextResponse.json(
+        {
+          status: 401,
+          message: "Unauthorized",
+          error: "Authentication required to access this API",
+        },
+        { status: 401 },
+      );
+    }
+
     const { idTheater } = params;
     if (!ObjectId.isValid(idTheater)) {
       return NextResponse.json({

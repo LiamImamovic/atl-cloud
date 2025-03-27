@@ -64,7 +64,7 @@ export default async function Home() {
           </Link>
 
           <a
-            href="https://github.com/your-repo/mflix-api"
+            href="https://github.com/LiamImamovic/atl-cloud"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-6 border border-gray-200 rounded-xl hover:border-blue-500 transition-colors"

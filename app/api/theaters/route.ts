@@ -1,22 +1,30 @@
-import client from "@/lib/mongodb";
-import { Db } from "mongodb";
+import { apiError, checkApiAuth, getMflixDb } from "@/lib/api-helpers";
 import { NextResponse } from "next/server";
 
 /**
  * @swagger
  * /api/theaters:
  *   get:
- *     description: Récupère tous les théâtres et cinémas
+ *     description: Récupère tous les théâtres et cinémas (nécessite une authentification)
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Théâtres récupérés avec succès
+ *       401:
+ *         description: Non autorisé - authentification requise
  *       500:
  *         description: Erreur serveur
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    // Vérification d'authentification
+    const { isAuthenticated, unauthorizedResponse } = await checkApiAuth();
+    if (!isAuthenticated) {
+      return unauthorizedResponse!;
+    }
+
+    const db = await getMflixDb();
     const theaters = await db
       .collection("theaters")
       .find({})
@@ -28,11 +36,7 @@ export async function GET(): Promise<NextResponse> {
       data: theaters,
     });
   } catch (error: any) {
-    return NextResponse.json({
-      status: 500,
-      message: "Internal Server Error",
-      error: error.message,
-    });
+    return apiError(500, "Internal Server Error", error.message);
   }
 }
 
