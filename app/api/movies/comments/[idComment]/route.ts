@@ -1,7 +1,7 @@
 import { checkApiAuth } from "@/lib/api-helpers";
 import { getAuthFromCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
-import { Db, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 /**
@@ -28,12 +28,9 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Erreur serveur
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { idComment: string } },
-): Promise<NextResponse> {
+export async function GET(request, context) {
   try {
-    const { idComment } = params;
+    const idComment = context.params.idComment;
     if (!ObjectId.isValid(idComment)) {
       return NextResponse.json({
         status: 400,
@@ -55,7 +52,7 @@ export async function GET(
     }
 
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
     const comment = await db
       .collection("comments")
@@ -73,7 +70,7 @@ export async function GET(
       status: 200,
       data: comment,
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
@@ -112,10 +109,7 @@ export async function GET(
  *       500:
  *         description: Erreur serveur
  */
-export async function POST(
-  request: Request,
-  { params }: { params: { idComment: string } },
-): Promise<NextResponse> {
+export async function POST(request, context) {
   try {
     // Vérification d'authentification
     const { isAuthenticated, unauthorizedResponse } = await checkApiAuth();
@@ -123,7 +117,7 @@ export async function POST(
       return unauthorizedResponse!;
     }
 
-    const { idComment } = params;
+    const idComment = context.params.idComment;
     if (!ObjectId.isValid(idComment)) {
       return NextResponse.json({
         status: 400,
@@ -133,7 +127,7 @@ export async function POST(
     }
 
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
     const commentData = await request.json();
 
@@ -164,7 +158,7 @@ export async function POST(
       message: "Comment created successfully",
       data: commentData,
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
@@ -201,12 +195,9 @@ export async function POST(
  *       500:
  *         description: Erreur serveur
  */
-export async function PUT(
-  request: Request,
-  { params }: { params: { idComment: string } },
-): Promise<NextResponse> {
+export async function PUT(request, context) {
   try {
-    const { idComment } = params;
+    const idComment = context.params.idComment;
     if (!ObjectId.isValid(idComment)) {
       return NextResponse.json({
         status: 400,
@@ -216,7 +207,7 @@ export async function PUT(
     }
 
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
     const commentData = await request.json();
     delete commentData._id; // Supprimer _id s'il est présent pour éviter les erreurs
@@ -241,7 +232,7 @@ export async function PUT(
       message: "Comment updated successfully",
       data: { _id: idComment, ...commentData },
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
@@ -272,10 +263,7 @@ export async function PUT(
  *       500:
  *         description: Erreur serveur
  */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { idComment: string } },
-): Promise<NextResponse> {
+export async function DELETE(request, context) {
   try {
     // Vérification d'authentification
     const auth = await getAuthFromCookie();
@@ -290,7 +278,7 @@ export async function DELETE(
       );
     }
 
-    const { idComment } = params;
+    const idComment = context.params.idComment;
     if (!ObjectId.isValid(idComment)) {
       return NextResponse.json({
         status: 400,
@@ -300,7 +288,7 @@ export async function DELETE(
     }
 
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
     const result = await db
       .collection("comments")
@@ -318,7 +306,7 @@ export async function DELETE(
       status: 200,
       message: "Comment deleted successfully",
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",

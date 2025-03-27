@@ -12,9 +12,7 @@ export type JWTPayload = {
   exp?: number;
 };
 
-// Clé secrète pour le JWT
-// Attention: en production, utilisez une variable d'environnement
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = "auth-token";
 
 // Fonction pour signer un nouveau JWT

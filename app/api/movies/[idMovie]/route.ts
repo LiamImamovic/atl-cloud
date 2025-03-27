@@ -1,6 +1,6 @@
 import { getAuthFromCookie } from "@/lib/auth";
 import client from "@/lib/mongodb";
-import { Db, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 /**
@@ -29,10 +29,7 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Erreur serveur
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { idMovie: string } },
-): Promise<NextResponse> {
+export async function GET(request, context) {
   try {
     // Vérification d'authentification
     const auth = await getAuthFromCookie();
@@ -48,9 +45,9 @@ export async function GET(
     }
 
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
-    const { idMovie } = params;
+    const idMovie = context.params.idMovie;
     if (!ObjectId.isValid(idMovie)) {
       return NextResponse.json({
         status: 400,
@@ -72,7 +69,7 @@ export async function GET(
     }
 
     return NextResponse.json({ status: 200, data: movie });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
@@ -107,15 +104,12 @@ export async function GET(
  *       500:
  *         description: Erreur serveur
  */
-export async function POST(
-  request: Request,
-  { params }: { params: { idMovie: string } },
-): Promise<NextResponse> {
+export async function POST(request, context) {
   try {
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
-    const { idMovie } = params;
+    const idMovie = context.params.idMovie;
     if (!ObjectId.isValid(idMovie)) {
       return NextResponse.json({
         status: 400,
@@ -148,7 +142,7 @@ export async function POST(
       message: "Movie created successfully",
       data: movieData,
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
@@ -185,15 +179,12 @@ export async function POST(
  *       500:
  *         description: Erreur serveur
  */
-export async function PUT(
-  request: Request,
-  { params }: { params: { idMovie: string } },
-): Promise<NextResponse> {
+export async function PUT(request, context) {
   try {
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
-    const { idMovie } = params;
+    const idMovie = context.params.idMovie;
     if (!ObjectId.isValid(idMovie)) {
       return NextResponse.json({
         status: 400,
@@ -222,7 +213,7 @@ export async function PUT(
       message: "Movie updated successfully",
       data: { _id: idMovie, ...movieData },
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
@@ -255,10 +246,7 @@ export async function PUT(
  *       500:
  *         description: Erreur serveur
  */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { idMovie: string } },
-): Promise<NextResponse> {
+export async function DELETE(request, context) {
   try {
     // Vérification d'authentification
     const auth = await getAuthFromCookie();
@@ -274,9 +262,9 @@ export async function DELETE(
     }
 
     const mongoClient = await client.connect();
-    const db: Db = mongoClient.db("sample_mflix");
+    const db = mongoClient.db("sample_mflix");
 
-    const { idMovie } = params;
+    const idMovie = context.params.idMovie;
     if (!ObjectId.isValid(idMovie)) {
       return NextResponse.json({
         status: 400,
@@ -301,7 +289,7 @@ export async function DELETE(
       status: 200,
       message: "Movie deleted successfully",
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       status: 500,
       message: "Internal Server Error",
