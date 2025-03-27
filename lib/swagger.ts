@@ -48,7 +48,6 @@ export const getApiDocs = async () => {
                 type: "array",
                 items: { type: "string" },
               },
-              // Autres propriétés peuvent être ajoutées selon la structure de vos documents
             },
           },
           Comment: {

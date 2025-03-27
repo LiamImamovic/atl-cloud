@@ -1,83 +1,120 @@
-## Example app using MongoDB
+# MFLIX - Plateforme Cinématographique
 
-[MongoDB](https://www.mongodb.com/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. This example will show you how to connect to and use MongoDB as your backend for your Next.js app.
+## 📋 Présentation
 
-If you want to learn more about MongoDB, visit the following pages:
+MFLIX est une application web moderne qui permet d'explorer une vaste collection de films et d'informations cinématographiques. Cette plateforme offre une interface utilisateur intuitive et une API RESTful complète pour accéder aux données de films, commentaires et théâtres.
 
-- [MongoDB Atlas](https://mongodb.com/atlas)
-- [MongoDB Documentation](https://docs.mongodb.com/)
+## ✨ Fonctionnalités principales
 
-## Deploy your own
+- **Catalogue de films** - Exploration de films avec filtres et recherche avancée
+- **API documentée** - Documentation Swagger pour tester les endpoints
+- **Système d'authentification** - Sécurisation des routes et des API
 
-Once you have access to the environment variables you'll need, deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example) or preview live with [StackBlitz](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/with-mongodb)
+## 🛠️ Technologies utilisées
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?project-name=with-mongodb&repository-name=with-mongodb&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-mongodb&integration-ids=oac_jnzmjqM10gllKmSrG0SGrHOH)
+- **Frontend**: Next.js 14 (App Router), React, Tailwind CSS
+- **Backend**: API Routes de Next.js, MongoDB
+- **Authentification**: JWT (JSON Web Tokens)
+- **Documentation**: Swagger UI
+- **Déploiement**: Vercel
 
-## How to use
+## 🚀 Installation et démarrage
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+### Prérequis
 
-```bash
-npx create-next-app --example with-mongodb with-mongodb-app
-```
+- Node.js 18.x ou supérieur
+- MongoDB (accès à une base "sample_mflix")
+- Variables d'environnement configurées (.env)
 
-```bash
-yarn create next-app --example with-mongodb with-mongodb-app
-```
-
-```bash
-pnpm create next-app --example with-mongodb with-mongodb-app
-```
-
-## Configuration
-
-### Set up a MongoDB database
-
-Set up a MongoDB database either locally or with [MongoDB Atlas for free](https://mongodb.com/atlas).
-
-### Set up environment variables
-
-Copy the `env.local.example` file in this directory to `.env.local` (which will be ignored by Git):
+### Installation
 
 ```bash
-cp .env.local.example .env.local
-```
+# Cloner le dépôt
+git clone https://github.com/LiamImamovic/atl-cloud.git
+cd atl-cloud
 
-Set each variable on `.env.local`:
-
-- `MONGODB_URI` - Your MongoDB connection string. If you are using [MongoDB Atlas](https://mongodb.com/atlas) you can find this by clicking the "Connect" button for your cluster.
-
-### Run Next.js in development mode
-
-```bash
-npm install
-npm run dev
-# or
-yarn install
-yarn dev
-# or
+# Installer les dépendances
 pnpm install
+
+# Configurer les variables d'environnement
+cp .env.example .env
+# Remplir les valeurs dans .env
+```
+
+### Démarrage en développement
+
+```bash
 pnpm dev
 ```
 
-Your app should be up and running on [http://localhost:3000](http://localhost:3000)! If it doesn't work, post on [GitHub discussions](https://github.com/vercel/next.js/discussions).
+L'application sera disponible sur http://localhost:3000
 
-You will either see a message stating "You are connected to MongoDB" or "You are NOT connected to MongoDB". Ensure that you have provided the correct `MONGODB_URI` environment variable.
+### Compilation pour la production
 
-When you are successfully connected, you can refer to the [MongoDB Node.js Driver docs](https://mongodb.github.io/node-mongodb-native/3.4/tutorials/collections/) for further instructions on how to query your database.
+```bash
+pnpm start
+pnpm build
+```
 
-## Deploy on Vercel
+## 🔑 Variables d'environnement
 
-You can deploy this app to the cloud with [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+Créez un fichier `.env` à la racine du projet avec les variables suivantes:
 
-#### Deploy Your Local Project
+MONGODB_URI
+JWT_SECRET
+REDIS_URL
 
-To deploy your local project to Vercel, push it to GitHub/GitLab/Bitbucket and [import to Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example).
+## 🌐 Structure de l'API
 
-**Important**: When you import your project on Vercel, make sure to click on **Environment Variables** and set them to match your `.env.local` file.
+L'API MFLIX est organisée selon les endpoints suivants:
 
-#### Deploy from Our Template
+### Films
 
-Alternatively, you can deploy using our template by clicking on the Deploy button below.
+- `GET /api/movies` - Liste tous les films
+- `GET /api/movies/:id` - Détails d'un film spécifique
+- `POST /api/movies` - Ajoute un nouveau film
+- `PUT /api/movies/:id` - Modifie un film existant
+- `DELETE /api/movies/:id` - Supprime un film
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?project-name=with-mongodb&repository-name=with-mongodb&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-mongodb&integration-ids=oac_jnzmjqM10gllKmSrG0SGrHOH)
+### Commentaires
+
+- `GET /api/movies/comments` - Liste tous les commentaires
+- `GET /api/movies/comments/:id` - Détails d'un commentaire
+- `POST /api/movies/comments` - Ajoute un nouveau commentaire
+- `PUT /api/movies/comments/:id` - Modifie un commentaire
+- `DELETE /api/movies/comments/:id` - Supprime un commentaire
+
+### Théâtres
+
+- `GET /api/theaters` - Liste tous les théâtres
+- `GET /api/theaters/:id` - Détails d'un théâtre
+
+### Authentification
+
+- `POST /api/auth/login` - Connexion utilisateur
+- `POST /api/auth/register` - Inscription utilisateur
+- `POST /api/auth/logout` - Déconnexion
+- `GET /api/auth/verify` - Vérification du token
+
+## 📚 Documentation
+
+Une documentation Swagger interactive est disponible à l'URL `/api-doc` de l'application déployée.
+
+Pour explorer les endpoints disponibles:
+
+1. Accédez à la page d'accueil
+2. Cliquez sur "Documentation API"
+3. Utilisez l'interface Swagger pour tester les différents endpoints
+
+## 🔐 Sécurité
+
+L'application implémente plusieurs niveaux de sécurité:
+
+- **Authentification par JWT** pour sécuriser les routes protégées
+- **Middleware d'authentification** pour les routes API
+- **Limitation de taux (Rate limiting)** pour prévenir les attaques par force brute
+- **Validation des entrées** pour prévenir les injections
+
+## 👥 Auteurs
+
+- **Liam Imamovic** - [GitHub](https://github.com/LiamImamovic)

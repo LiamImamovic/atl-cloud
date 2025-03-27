@@ -66,7 +66,7 @@ async function getMovie(id: string): Promise<Movie | null> {
   }
 }
 
-// Modifions le type Props pour éviter le conflit avec PageProps
+// Modif le type Props pour éviter le conflit avec PageProps
 type MovieDetailProps = {
   params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };

@@ -8,7 +8,7 @@ const redis = new Redis({
 
 type RateLimitConfig = {
   limit: number;
-  window: number; // en secondes
+  window: number;
 };
 
 const DEFAULT_CONFIG: RateLimitConfig = {

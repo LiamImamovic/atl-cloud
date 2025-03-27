@@ -41,8 +41,8 @@ export const theaterSearchSchema = paginationSchema.extend({
   city: z.string().optional(),
   state: z.string().optional(),
   zipcode: z.string().optional(),
-  near: z.tuple([z.number(), z.number()]).optional(), // Coordonnées [longitude, latitude]
-  maxDistance: z.coerce.number().positive().optional(), // Distance en mètres
+  near: z.tuple([z.number(), z.number()]).optional(),
+  maxDistance: z.coerce.number().positive().optional(),
 });
 
 // Types inférés à partir des schémas

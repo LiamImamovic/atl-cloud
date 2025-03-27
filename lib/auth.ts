@@ -16,7 +16,7 @@ export type JWTPayload = {
 const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = "auth-token";
 
-export const TOKEN_EXPIRY = 60 * 60 * 24 * 7; // 7 jours en secondes
+export const TOKEN_EXPIRY = 60 * 60 * 24 * 7;
 
 // Fonction pour signer un nouveau JWT
 export async function signJWT(payload: JWTPayload): Promise<string> {

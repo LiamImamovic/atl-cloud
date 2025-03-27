@@ -26,14 +26,14 @@ import { NextResponse } from "next/server";
  *                 format: email
  *               password:
  *                 type: string
- *                 minLength: 6
+ *                 minLength: 10
  *               name:
  *                 type: string
  *     responses:
  *       201:
  *         description: Compte créé avec succès
  *       400:
- *         description: Données invalides
+ *         description: Données invalides (Mot de passe doit contenir au moins 10 caractères, un chiffre et un caractère spécial)
  *       409:
  *         description: Email déjà utilisé
  *       500:
